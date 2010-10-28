@@ -1,0 +1,22 @@
+Info:
+
+First install citrus-maven-plugin
+ 'mvn install'
+
+An example of pom.xml:
+
+<properties>
+    <citrus.maven.plugin.version>1.0-SNAPSHOT</citrus.maven.plugin.version>
+</properties>
+<build>
+  <plugins>
+    <plugin>
+      <groupId>no.citrus.plugin</groupId>
+      <artifactId>citrus-maven-plugin</artifactId>
+      <version>${citrus.maven.plugin.version}</version>
+    </plugin>
+  </plugins>
+</build>
+
+Run plugin:
+ 'mvn no.citrus.plugin:citrus-maven-plugin:1.0-SNAPSHOT:test' 
