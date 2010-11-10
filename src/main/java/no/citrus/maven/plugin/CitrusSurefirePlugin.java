@@ -22,9 +22,12 @@ import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.surefire.SurefireHelper;
 import org.apache.maven.plugin.surefire.SurefirePlugin;
 import org.apache.maven.surefire.booter.ForkConfiguration;
 import org.apache.maven.surefire.booter.SurefireBooter;
+import org.apache.maven.surefire.booter.SurefireBooterForkException;
+import org.apache.maven.surefire.booter.SurefireExecutionException;
 import org.apache.maven.surefire.report.BriefConsoleReporter;
 import org.apache.maven.surefire.report.BriefFileReporter;
 import org.apache.maven.surefire.report.ConsoleReporter;
@@ -44,10 +47,55 @@ import org.codehaus.plexus.util.StringUtils;
  */
 public class CitrusSurefirePlugin extends SurefirePlugin {
 
-
+    public CitrusSurefirePlugin(){
+    	super();
+    }
+    
+    
+    
 	private static final String BRIEF_REPORT_FORMAT = "brief";
 
 	private static final String PLAIN_REPORT_FORMAT = "plain";
+
+	
+	
+	@Override
+	public void execute() throws MojoExecutionException, MojoFailureException {
+		//super.execute();
+		if ( verifyParameters() )
+        {
+            SurefireBooter surefireBooter = constructSurefireBooter();
+
+            getLog().info(
+                StringUtils.capitalizeFirstLetter( getPluginName() ) + " report directory: " + getReportsDirectory() );
+
+            int result;
+            try
+            {
+                result = surefireBooter.run();
+            }
+            catch ( SurefireBooterForkException e )
+            {
+                throw new MojoExecutionException( e.getMessage(), e );
+            }
+            catch ( SurefireExecutionException e )
+            {
+                throw new MojoExecutionException( e.getMessage(), e );
+            }
+
+            if ( getOriginalSystemProperties() != null && !surefireBooter.isForking() )
+            {
+                // restore system properties, only makes sense when not forking..
+                System.setProperties( getOriginalSystemProperties() );
+            }
+            Reporter.run();
+            SurefireHelper.reportExecution( this, result, getLog() );
+            
+        }
+		
+	}
+
+
 
 	@Override
 	protected SurefireBooter constructSurefireBooter()
@@ -226,14 +274,14 @@ public class CitrusSurefirePlugin extends SurefirePlugin {
 				{
 					if ( isAnyJunit4( junitArtifact ) )
 					{
-						junitDirectoryTestSuite = "no.citrus.CitrusJUnit4DirectoryTestSuite";
+						junitDirectoryTestSuite = "no.citrus.maven.junit.CitrusJUnit4DirectoryTestSuite";
 						System.out.println("Junit4");
 					}
 					else
 					{
 						// fall back to JUnit, which also contains POJO support. Also it can run
 						// classes compiled against JUnit since it has a dependency on JUnit itself.
-						junitDirectoryTestSuite = "no.citrus.CitrusJUnitDirectoryTestSuite";
+						junitDirectoryTestSuite = "no.citrus.maven.junit.CitrusJUnitDirectoryTestSuite";
 						System.out.println("JUnit3");
 					}
 					surefireBooter.addTestSuite( junitDirectoryTestSuite,
@@ -283,7 +331,7 @@ public class CitrusSurefirePlugin extends SurefirePlugin {
 		}
 
 		// ----------------------------------------------------------------------
-		// Forking
+		// Forkingmvn no.citrus:citrus-maven-plugin:1.0-SNAPSHOT:
 		// ----------------------------------------------------------------------
 
 		ForkConfiguration fork = new ForkConfiguration();
@@ -292,7 +340,7 @@ public class CitrusSurefirePlugin extends SurefirePlugin {
 
 		processSystemProperties( !fork.isForking() );
 
-		if ( getLog().isDebugEnabled() )
+		if ( getLog().isDebugEnabled() )System.out.println("construct surefirebooter");
 		{
 			showMap( getInternalSystemProperties(), "system property" );
 		}
