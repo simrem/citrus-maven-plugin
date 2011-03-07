@@ -29,12 +29,13 @@ public class Reporter {
 	private static final String FOLDER = "./target/surefire-reports/";
 	public static void run() throws JAXBException{
 		String[] reports = getReports();
-		MeasureList<Measure> measures = new MeasureList<Measure>();
+		MeasureList measures = new MeasureList(new ArrayList<Measure>());
 		if(reports != null)
 		{
-			for(int i = 0; i< reports.length; i++){
-				System.out.println(reports[i]);
-				measures.getList().add(parseXMLReport(reports[i]));
+			for(int i = 0; i < reports.length; i++){
+				//System.out.println("Forloop " + reports[i]);
+				Measure m = parseXMLReport(reports[i]);
+				measures.getList().add(m);
 
 			}
 		}
@@ -49,7 +50,6 @@ public class Reporter {
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			Document doc = db.parse(file);
 			doc.getDocumentElement().normalize();
-			System.out.println("Root element " + doc.getDocumentElement().getNodeName());
 			NodeList testSuiteLst = doc.getElementsByTagName("testsuite");
 			Element testSuite = (Element) testSuiteLst.item(0);
 			Measure testSuiteMeasure = createTestSuiteMeasure(testSuite);
@@ -57,7 +57,6 @@ public class Reporter {
 			List<Measure> measureLst = new ArrayList<Measure>();
 
 			NodeList nodeLst = testSuite.getElementsByTagName("testcase");
-			System.out.println("Testsuite:" + testSuite.getAttribute("name"));
 			for (int s = 0; s < nodeLst.getLength(); s++) {
 
 				Node fstNode = nodeLst.item(s);
@@ -68,8 +67,10 @@ public class Reporter {
 				}
 			}
 			testSuiteMeasure.setChildren(measureLst);
+//			System.out.println("TestSuite done" + testSuiteMeasure.source);
 			return testSuiteMeasure;
 		} catch (Exception e) {
+//			System.out.println(e.getMessage());
 			e.printStackTrace();
 		}
 
@@ -114,7 +115,7 @@ public class Reporter {
 		});
 	}
 
-	public static void convertToXml(MeasureList<Measure> measures) throws JAXBException{
+	private static void convertToXml(MeasureList measures) throws JAXBException{
 		JAXBContext context = JAXBContext.newInstance(MeasureList.class, Measure.class);
 		Marshaller marshaller = context.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -127,7 +128,8 @@ public class Reporter {
 		Client c = Client.create();  
 		WebResource r = c.resource("http://localhost:8090/measure");  
 
-		r.type("application/xml").post(String.class, sb.toString());   
+		//TODO:
+		//r.type("application/xml").post(String.class, sb.toString());   
 	}
 
 }

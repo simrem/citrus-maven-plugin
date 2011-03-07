@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 
+import no.citrus.maven.plugin.PriorityListHandler;
+
 import org.apache.maven.surefire.Surefire;
 import org.apache.maven.surefire.report.ReportEntry;
 import org.apache.maven.surefire.report.ReporterException;
@@ -18,6 +20,7 @@ import org.apache.maven.surefire.suite.SurefireTestSuite;
 import org.apache.maven.surefire.testset.SurefireTestSet;
 import org.apache.maven.surefire.testset.TestSetFailedException;
 import org.apache.maven.surefire.util.SurefireDirectoryScanner;
+import org.codehaus.jettison.json.JSONException;
 
 public abstract class CitrusAbstractDirectoryTestSuite implements SurefireTestSuite {
 
@@ -64,19 +67,14 @@ public abstract class CitrusAbstractDirectoryTestSuite implements SurefireTestSu
 
                 totalTests++;
         }
-        for (int i = 0; i < testSets.size(); i++){
-        	System.out.println(testSets.keySet().toArray()[i].toString());
-        }
         
-        LinkedHashMap temp = new LinkedHashMap();
-        for ( int i = testSets.size()-1; i >= 0; i--){
-        	Object key = testSets.keySet().toArray()[i];
-        	temp.put(key, testSets.get(key));
-        	temp.put(key.toString() + "1", testSets.get(key));
-        }
-        for (int i = 0; i < temp.size(); i++){
-        	System.out.println(temp.keySet().toArray()[i].toString());
-        }
+        LinkedHashMap temp = null;
+		try {
+			temp = PriorityListHandler.getPriorityList(testSets);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         testSets = temp;
         
         return Collections.unmodifiableMap( testSets );

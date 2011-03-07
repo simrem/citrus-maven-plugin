@@ -4,7 +4,6 @@ import junit.framework.Test;
 
 
 import org.apache.maven.surefire.junit.JUnitTestSet;
-import org.apache.maven.surefire.suite.AbstractDirectoryTestSuite;
 import org.apache.maven.surefire.testset.PojoTestSet;
 import org.apache.maven.surefire.testset.SurefireTestSet;
 import org.apache.maven.surefire.testset.TestSetFailedException;
